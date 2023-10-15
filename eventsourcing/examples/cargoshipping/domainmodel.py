@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Union, cast
@@ -190,7 +188,7 @@ class Cargo(Aggregate):
         origin: Location,
         destination: Location,
         arrival_deadline: datetime,
-    ) -> Cargo:
+    ) -> "Cargo":
         return cls._create(
             event_class=cls.BookingStarted,
             id=uuid4(),
@@ -223,8 +221,8 @@ class Cargo(Aggregate):
     class DestinationChanged(Event):
         destination: Location
 
-    @when.register(DestinationChanged)
-    def destination_changed(self, event: DestinationChanged) -> None:
+    @when.register
+    def _(self, event: DestinationChanged) -> None:
         self._destination = event.destination
 
     def assign_route(self, itinerary: Itinerary) -> None:
@@ -233,8 +231,8 @@ class Cargo(Aggregate):
     class RouteAssigned(Event):
         route: Itinerary
 
-    @when.register(RouteAssigned)
-    def route_assigned(self, event: RouteAssigned) -> None:
+    @when.register
+    def _(self, event: RouteAssigned) -> None:
         self._route = event.route
         self._routing_status = "ROUTED"
         self._estimated_time_of_arrival = Cargo.Event.create_timestamp() + timedelta(
@@ -264,8 +262,8 @@ class Cargo(Aggregate):
         location: Location
         handling_activity: str
 
-    @when.register(HandlingEventRegistered)
-    def handling_event_registered(self, event: HandlingEventRegistered) -> None:
+    @when.register
+    def _(self, event: HandlingEventRegistered) -> None:
         assert self.route is not None
         if event.handling_activity == HandlingActivity.RECEIVE:
             self._transport_status = "IN_PORT"
